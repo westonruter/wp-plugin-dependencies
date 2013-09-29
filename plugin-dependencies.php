@@ -152,9 +152,9 @@ class Plugin_Dependencies {
 					$dependency = self::parse_dependency( $dep );
 
 					// add required version if available
-//					if ( ! empty( $dependency ) ) {
-//						$requirement['version'] = rtrim( substr( $dependency['original_version'], 2 ), ')' );
-//					}
+					if ( ! empty( $dependency ) ) {
+						$requirement['version'] = rtrim( substr( $dependency['original_version'], 2 ), ')' );
+					}
 				}
 
 				if ( ! empty( $dep ) )
@@ -171,8 +171,8 @@ class Plugin_Dependencies {
 		}
 
 		// allow plugins to filter dependencies and requirements
-//		self::$dependencies = apply_filters( 'scr_plugin_dependency_dependencies', self::$dependencies );
-//		self::$requirements = apply_filters( 'scr_plugin_dependency_requirements', self::$requirements );
+		self::$dependencies = apply_filters( 'scr_plugin_dependency_dependencies', self::$dependencies );
+		self::$requirements = apply_filters( 'scr_plugin_dependency_requirements', self::$requirements );
 	}
 
 	private static function parse_field( $str ) {
