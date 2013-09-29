@@ -152,9 +152,9 @@ class Plugin_Dependencies {
 					$dependency = self::parse_dependency( $dep );
 
 					// add required version if available
-					if ( ! empty( $dependency ) ) {
-						$requirement['version'] = rtrim( substr( $dependency['original_version'], 2 ), ')' );
-					}
+//					if ( ! empty( $dependency ) ) {
+//						$requirement['version'] = rtrim( substr( $dependency['original_version'], 2 ), ')' );
+//					}
 				}
 
 				if ( ! empty( $dep ) )
@@ -171,12 +171,8 @@ class Plugin_Dependencies {
 		}
 
 		// allow plugins to filter dependencies and requirements
-		self::$dependencies = apply_filters( 'scr_plugin_dependency_dependencies', self::$dependencies );
-		self::$requirements = apply_filters( 'scr_plugin_dependency_requirements', self::$requirements );
-
-		//print_r( self::$dependencies );
-
-		//var_dump( self::$requirements );
+//		self::$dependencies = apply_filters( 'scr_plugin_dependency_dependencies', self::$dependencies );
+//		self::$requirements = apply_filters( 'scr_plugin_dependency_requirements', self::$requirements );
 	}
 
 	private static function parse_field( $str ) {
@@ -452,7 +448,6 @@ class Plugin_Dependencies_UI {
 	private static $msg;
 
 	public static function init() {
-		add_action( 'admin_notices', array( __CLASS__, 'admin_notices' ) );
 		add_action( 'admin_print_styles', array( __CLASS__, 'admin_print_styles' ) );
 		add_action( 'admin_print_footer_scripts', array( __CLASS__, 'footer_script' ), 20 );
 
@@ -498,67 +493,6 @@ class Plugin_Dependencies_UI {
 		}
 	}
 
-	static function admin_notices() {
-		foreach ( self::$msg as $args ) {
-			list( $action, $type, $text ) = $args;
-
-			if ( !isset( $_REQUEST[ $action ] ) )
-				continue;
-
-			$deactivated = get_transient( "pd_deactivate_$type" );
-			delete_transient( "pd_deactivate_$type" );
-
-			if ( empty( $deactivated ) )
-				continue;
-
-			echo
-			html( 'div', array( 'class' => 'updated' ),
-				html( 'p', $text, self::generate_dep_list( $deactivated ) )
-			);
-		}
-
-		$requirements = Plugin_Dependencies::get_requirement_notices();
-
-		if ( ! empty( $requirements ) && empty( $_REQUEST['action'] ) ) {
-			echo '<div class="plugin-warnings error">';
-
-			foreach ( $requirements as $plugin_name => $messages ) {
-				echo '<p id="warnings-' . sanitize_title( $plugin_name ) . '">' . sprintf( __( '%s requires the following issues to be addressed before it can be activated: ' , 'plugin-dependencies' ), "<strong>{$plugin_name}</strong>" ) . '</p><ul>';
-
-				foreach ( $messages as $data ) {
-					echo '<li>' . $data['title'] . ' - ' . $data['description'];
-
-					switch ( $data['title'] ) {
-						case __( 'Missing plugin', 'plugin-dependencies' ) :
-							if ( ! empty( $data['version'] ) ) {
-								echo ' ' . sprintf( __( '(Version %s required)', 'plugin-dependencies' ), $data['version'] );
-							}
-
-							echo ' ' . sprintf( __( '(<a href="%s">Try to find the plugin and install it here</a>)', 'plugin-dependencies' ), self_admin_url( 'plugin-install.php?tab=search&amp;type=term&s=' . $data['description'] ) );
-
-							break;
-
-						case __( 'Unactivated plugin', 'plugin-dependencies' ) :
-							$loader = Plugin_Dependencies::get_pluginloader_by_name( $data['description'] );
-
-							$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=' . $loader ), 'activate-plugin_' . $loader );
-
-							echo ' ' . sprintf( __( '(<a href="%s">Activate it now!</a>)', 'plugin-dependencies' ), $activate_url );
-
-							break;
-					}
-
-					echo '</li>';
-				}
-
-				echo '</ul>';
-			}
-
-			echo '</div>';
-
-		}
-	}
-
 	static function catch_bulk_activate() {
 		$wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
 
@@ -594,25 +528,80 @@ class Plugin_Dependencies_UI {
 	}
 
 	static function inline_plugin_error( $plugin_file, $plugin_data, $status ) {
-	?>
-		<tr class="plugin-update-tr">
-			<td class="plugin-update" colspan="3">
-				<div class="update-message form-invalid">
-					<?php printf( __( '"%s" cannot be activated. Before you can activate this plugin, please <a href="%s">address the issues listed here</a>.', 'plugin-dependencies' ), $plugin_data['Name'], '#warnings-' . sanitize_title( $plugin_data['Name'] ) ); ?>
-				</div>
-			</td>
-		</tr>
-	<?php
+		foreach ( self::$msg as $args ) {
+			list( $action, $type, $text ) = $args;
+
+			if ( !isset( $_REQUEST[ $action ] ) )
+				continue;
+
+			$deactivated = get_transient( "pd_deactivate_$type" );
+			delete_transient( "pd_deactivate_$type" );
+
+			if ( empty( $deactivated ) )
+				continue;
+
+			echo
+			html( 'div', array( 'class' => 'updated' ),
+				html( 'p', $text, self::generate_dep_list( $deactivated ) )
+			);
+		}
+
+		$requirements = Plugin_Dependencies::get_requirement_notices();
+
+		if ( ! empty( $requirements ) && empty( $_REQUEST['action'] ) ) {
+		?>
+			<tr class="plugin-requirements">
+				<th class="check-column" scope="row">
+					&nbsp;
+				</th>
+				<td colspan="2">
+					<?php
+					foreach ( $requirements as $plugin_name => $messages ) {
+						echo '<p id="warnings-' . sanitize_title( $plugin_name ) . '">' . sprintf( __( '%s requires the following issues to be addressed before it can be activated: ' , 'plugin-dependencies' ), "<strong>{$plugin_name}</strong>" ) . '</p><ul>';
+
+						foreach ( $messages as $data ) {
+							echo '<li>' . $data['title'] . ' - ' . $data['description'];
+
+							switch ( $data['title'] ) {
+								case __( 'Missing plugin', 'plugin-dependencies' ) :
+									if ( ! empty( $data['version'] ) ) {
+										echo ' ' . sprintf( __( '(Version %s required)', 'plugin-dependencies' ), $data['version'] );
+									}
+
+									echo ' ' . sprintf( __( '(<a href="%s">Try to find the plugin and install it here</a>)', 'plugin-dependencies' ), self_admin_url( 'plugin-install.php?tab=search&amp;type=term&s=' . $data['description'] ) );
+
+									break;
+
+								case __( 'Unactivated plugin', 'plugin-dependencies' ) :
+									$loader = Plugin_Dependencies::get_pluginloader_by_name( $data['description'] );
+
+									$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=' . $loader ), 'activate-plugin_' . $loader );
+
+									echo ' ' . sprintf( __( '(<a href="%s">Activate it now!</a>)', 'plugin-dependencies' ), $activate_url );
+
+									break;
+							}
+
+							echo '</li>';
+						}
+
+						echo '</ul>';
+					}
+					?>
+				</td>
+			</tr>
+		<?php
+		}
 	}
 
 	static function admin_print_styles() {
 ?>
 <style type="text/css">
-.plugin-warnings ul {margin:.5em 0 1.5em 1em;}
-.dep-list li, .plugin-warnings li { list-style: disc inside none }
-span.deps li.unsatisfied { color: red }
-span.deps li.unsatisfied_network { color: orange }
-span.deps li.satisfied { color: green }
+.plugin-requirements { box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.1) inset; }
+.plugin-requirements th { border-left: 4px solid #FFA500; }
+.plugin-requirements p { margin: 0.5em 0; padding: 2px; }
+.plugin-requirements ul { margin: 0.5em 0 0.5em 1em; }
+.plugin-requirements li { list-style: disc inside none; }
 </style>
 <?php
 	}
