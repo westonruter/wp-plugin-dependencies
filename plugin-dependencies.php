@@ -154,7 +154,7 @@ class Plugin_Dependencies {
 		return self::$deactivate_cascade;
 	}
 
-	private function _cascade( $to_deactivate ) {
+	private static function _cascade( $to_deactivate ) {
 		$to_deactivate_deps = array();
 		foreach ( $to_deactivate as $plugin_id )
 			$to_deactivate_deps = array_merge( $to_deactivate_deps, self::get_provided( $plugin_id ) );
