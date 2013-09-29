@@ -75,6 +75,12 @@ Besides being more robust, the *Provides:* header allows multiple plugins to imp
 
 == Changelog ==
 
+= 1.3 =
+* added 'Core:' header
+* added version dependencies (major thanks to Drupal!)
+* do not allow plugins to be bulk-activated if their dependent plugins are not activated yet
+* changed how required plugins are displayed
+
 = 1.2 =
 * added ability to use plugin names as dependencies
 * [more info](http://scribu.net/wordpress/plugin-dependencies/pd-1-2.html)
