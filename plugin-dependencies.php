@@ -565,11 +565,11 @@ class Plugin_Dependencies_UI {
 							switch ( $data['title'] ) {
 								case __( 'Missing plugin', 'plugin-dependencies' ) :
 									if ( ! empty( $data['version'] ) ) {
-										echo ' ' . sprintf( __( '(Version %s required)', 'plugin-dependencies' ), $data['version'] );
+										echo ' (' . sprintf( __( 'Version %s required', 'plugin-dependencies' ), $data['version'] ) . ')';
 									}
 
-									echo ' ' . sprintf( __( '(<a href="%s">Try to find the plugin and install it here</a>)', 'plugin-dependencies' ), self_admin_url( 'plugin-install.php?tab=search&amp;type=term&s=' . $data['description'] ) );
-
+									echo ' ' . sprintf( '( <a href="%s">', self_admin_url( 'plugin-install.php?tab=search&amp;type=term&s=' . $data['description'] ) ) .  __( 'Try to find the plugin and install it here', 'plugin-dependencies' ) . '</a> )';
+									 
 									break;
 
 								case __( 'Unactivated plugin', 'plugin-dependencies' ) :
@@ -577,7 +577,7 @@ class Plugin_Dependencies_UI {
 
 									$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=' . $loader ), 'activate-plugin_' . $loader );
 
-									echo ' ' . sprintf( __( '(<a href="%s">Activate it now!</a>)', 'plugin-dependencies' ), $activate_url );
+									echo ' ' . sprintf( '( <a href="%s">', $activate_url ) .  __( 'Activate it now!', 'plugin-dependencies' ) . '</a> )';
 
 									break;
 							}
