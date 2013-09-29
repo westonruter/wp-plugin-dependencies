@@ -572,7 +572,7 @@ class Plugin_Dependencies_UI {
 									 
 									break;
 
-								case __( 'Unactivated plugin', 'plugin-dependencies' ) :
+								case __( 'Inactive plugin', 'plugin-dependencies' ) :
 									$loader = Plugin_Dependencies::get_pluginloader_by_name( $data['description'] );
 
 									$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=' . $loader ), 'activate-plugin_' . $loader );
