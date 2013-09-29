@@ -134,7 +134,7 @@ class Plugin_Dependencies {
 						// add requirement if dependent plugin is inactive
 						if ( ! $active ) {
 							$requirement = array(
-								'title' => __( 'Unactivated plugin', 'plugin-dependencies' ),
+								'title' => __( 'Inactive plugin', 'plugin-dependencies' ),
 								'description' => $plugin_name
 							);
 						}
