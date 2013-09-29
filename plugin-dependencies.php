@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Plugin Dependencies
-Version: 1.2
+Version: 1.3-dev
 Description: Prevent activating plugins that don't have all their dependencies satisfied
 Author: scribu
 Author URI: http://scribu.net/
@@ -10,7 +10,7 @@ Text Domain: plugin-dependencies
 Domain Path: /lang
 */
 
-if ( !is_admin() )
+if ( ! is_admin() )
 	return;
 
 add_filter( 'extra_plugin_headers', array( 'Plugin_Dependencies', 'extra_plugin_headers' ) );
@@ -366,4 +366,3 @@ function html( $tag ) {
 	return "<{$tag}>{$content}</{$closing}>";
 }
 endif;
-
