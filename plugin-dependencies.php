@@ -16,8 +16,6 @@ if ( !is_admin() ) {
 
 if ( ! class_exists( 'Plugin_Dependencies' ) ):
 
-	add_filter( 'extra_plugin_headers', array( 'Plugin_Dependencies', 'extra_plugin_headers' ) );
-	
 	class Plugin_Dependencies {
 		private static $dependencies = array();
 		private static $provides = array();
@@ -160,7 +158,7 @@ if ( ! class_exists( 'Plugin_Dependencies' ) ):
 			return self::$deactivate_cascade;
 		}
 	
-		private function _cascade( $to_deactivate ) {
+		private static function _cascade( $to_deactivate ) {
 			$to_deactivate_deps = array();
 			foreach ( $to_deactivate as $plugin_id )
 				$to_deactivate_deps = array_merge( $to_deactivate_deps, self::get_provided( $plugin_id ) );
@@ -187,8 +185,7 @@ endif;
 
 
 if ( ! class_exists( 'Plugin_Dependencies_UI' ) ):
-	add_action( 'load-plugins.php', array( 'Plugin_Dependencies_UI', 'init' ) );
-	
+
 	class Plugin_Dependencies_UI {
 	
 		private static $msg;
@@ -393,3 +390,10 @@ function html( $tag ) {
 }
 endif;
 
+
+add_action( 'plugins_loaded', 'init_plugin_dependencies' );
+
+function init_plugin_dependencies() {
+	add_filter( 'extra_plugin_headers', array( 'Plugin_Dependencies', 'extra_plugin_headers' ) );
+	add_action( 'load-plugins.php', array( 'Plugin_Dependencies_UI', 'init' ) );
+}
