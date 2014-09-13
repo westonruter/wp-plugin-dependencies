@@ -129,16 +129,18 @@ class Plugin_Dependencies {
 
 		if ( is_array( $arrays ) && $arrays !== array() ) {
 			foreach ( $arrays as $array ) {
-				foreach ( $array as $file_slug => $data ) {
-					if ( ! isset( $result[ $file_slug ] ) ) {
-						$result[ $file_slug ] = array_merge( $minimum, $data );
-					}
-					elseif ( $result[ $file_slug ]['Name'] === $data['Name'] )  {
-						if ( ! empty( $data['Depends'] ) ) {
-							$result[ $file_slug ]['Depends']  = self::merge_unique_comma_del_string( $result[ $file_slug ]['Depends'], $data['Depends'] );
+				if ( is_array( $array ) && $array !== array() ) {
+					foreach ( $array as $file_slug => $data ) {
+						if ( ! isset( $result[ $file_slug ] ) ) {
+							$result[ $file_slug ] = array_merge( $minimum, $data );
 						}
-						if ( ! empty( $data['Provides'] ) ) {
-							$result[ $file_slug ]['Provides'] = self::merge_unique_comma_del_string( $result[ $file_slug ]['Provides'], $data['Provides'] );
+						elseif ( $result[ $file_slug ]['Name'] === $data['Name'] )  {
+							if ( ! empty( $data['Depends'] ) ) {
+								$result[ $file_slug ]['Depends']  = self::merge_unique_comma_del_string( $result[ $file_slug ]['Depends'], $data['Depends'] );
+							}
+							if ( ! empty( $data['Provides'] ) ) {
+								$result[ $file_slug ]['Provides'] = self::merge_unique_comma_del_string( $result[ $file_slug ]['Provides'], $data['Provides'] );
+							}
 						}
 					}
 				}
