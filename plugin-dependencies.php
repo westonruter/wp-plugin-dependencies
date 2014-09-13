@@ -88,6 +88,71 @@ class Plugin_Dependencies {
 		}
 	}
 
+	/**
+	 * Helper function for functions hooking into the 'plugin_dependencies_all_plugins' hook.
+	 *
+	 * Example code:
+	 * <code>
+	 * <?php
+	 * function add_my_dependencies( $plugins ) {
+	 *		$myplugins = some_function_getting_a_plugins_array();
+	 *		return Plugin_Dependencies::data_safe_plugin_merge( $plugins, $my_plugins );
+	 * }
+	 * add_filter( 'plugin_dependencies_all_plugins', 'add_my_dependencies' );
+	 * ?>
+	 * </code>
+	 *
+	 * @param array  One or more arrays of plugins to be merged
+	 * @return array
+	 */
+	public static function data_safe_plugin_merge() {
+		if ( func_num_args() === 0 ) {
+			return array();
+		}
+
+		$arrays = func_get_args();
+		$result = array_shift( $arrays );
+
+		$minimum = array(
+			'Name'     => '',
+			'Depends'  => '',
+			'Provides' => '',
+		);
+
+		if ( is_array( $arrays ) && $arrays !== array() ) {
+			foreach ( $arrays as $array ) {
+				foreach ( $array as $file_slug => $data ) {
+					if ( ! isset( $result[ $file_slug ] ) ) {
+						$result[ $file_slug ] = array_merge( $minimum, $data );
+					}
+					elseif ( $result[ $file_slug ]['Name'] === $data['Name'] )  {
+						if ( ! empty( $data['Depends'] ) ) {
+							$result[ $file_slug ]['Depends']  = self::merge_unique_comma_del_string( $result[ $file_slug ]['Depends'], $data['Depends'] );
+						}
+						if ( ! empty( $data['Provides'] ) ) {
+							$result[ $file_slug ]['Provides'] = self::merge_unique_comma_del_string( $result[ $file_slug ]['Provides'], $data['Provides'] );
+						}
+					}
+				}
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Merge two comma delimited strings to one string containing only unique values.
+	 *
+	 * @param string $string1
+	 * @param string $string2
+	 * @return string
+	 */
+	public static function merge_unique_comma_del_string( $string1, $string2 ) {
+		$string1 = self::parse_field( $string1 );
+		$string2 = self::parse_field( $string2 );
+		$result  = array_unique( array_merge( $string1, $string2 ) );
+		return implode( ',', $result );
+	}
+
 	private static function parse_field( $str ) {
 		return array_filter( preg_split( '/,\s*/', $str ) );
 	}
