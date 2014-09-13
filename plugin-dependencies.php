@@ -95,6 +95,14 @@ class Plugin_Dependencies {
 	 * <code>
 	 * <?php
 	 * function add_my_dependencies( $plugins ) {
+	 *		/* Data format for $myplugins - extraneous information will be ignored:
+	 *		array(
+	 *			'plugin-dir/file.php' => array(
+	 *				'Name' => 'Plugin name',
+	 *				'Provides' => '',
+	 *				'Depends' => '',
+	 *			)
+	 *		)* /
 	 *		$myplugins = some_function_getting_a_plugins_array();
 	 *		return Plugin_Dependencies::data_safe_plugin_merge( $plugins, $my_plugins );
 	 * }
