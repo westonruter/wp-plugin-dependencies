@@ -157,6 +157,9 @@ class Plugin_Dependencies {
 	 * @return string
 	 */
 	public static function merge_unique_comma_del_string( $string1, $string2 ) {
+		if ( $string1 === '' || $string2 === '' ) {
+			return ( $string1 === '' ? $string2 : $string1 );
+		}
 		$string1 = self::parse_field( $string1 );
 		$string2 = self::parse_field( $string2 );
 		$result  = array_unique( array_merge( $string1, $string2 ) );
