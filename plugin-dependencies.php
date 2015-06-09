@@ -202,7 +202,7 @@ class Plugin_Dependencies {
 			$bulk = $_POST['checked'];
 		}
 
-		self::$active_plugins = array_merge( self::$active_plugins, array_keys( (array) get_mu_plugins() ), $bulk );
+		self::$active_plugins = array_unique( array_merge( self::$active_plugins, array_keys( (array) get_mu_plugins() ), $bulk ) );
 
 		$deps = self::get_dependencies( $plugin );
 		if ( count( $deps ) === count( array_intersect( self::$active_plugins, $deps ) ) ) {
