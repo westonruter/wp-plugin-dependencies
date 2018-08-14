@@ -1,14 +1,20 @@
 <?php
-/*
-Plugin Name: Plugin Dependencies
-Version: 1.3
-Description: Prevent activating plugins that don't have all their dependencies satisfied
-Author: scribu
-Author URI: http://scribu.net/
-Plugin URI: http://scribu.net/wordpress/plugin-dependencies
-Text Domain: plugin-dependencies
-Domain Path: /lang
-*/
+/**
+ * Plugin Dependencies WordPress plugin.
+ *
+ * @link        https://github.com/xwp/wp-plugin-dependencies
+ * @license     http://creativecommons.org/licenses/GPL/3.0/ GNU General Public License, version 3 or higher
+ *
+ * @wordpress-plugin
+ * Plugin Name: Plugin Dependencies
+ * Version:     1.3
+ * Description: Prevent activating plugins that don't have all their dependencies satisfied
+ * Author:      scribu
+ * Author URI:  http://scribu.net/
+ * Plugin URI:  http://scribu.net/wordpress/plugin-dependencies
+ * Text Domain: plugin-dependencies
+ * Domain Path: /lang
+ */
 
 if ( ! is_admin() ) {
 	return;
@@ -16,12 +22,12 @@ if ( ! is_admin() ) {
 
 
 /**
- * Main plugin class
+ * Main plugin class.
  */
 class Plugin_Dependencies_Loader {
 
 	/**
-	 * Initialize plugin
+	 * Initialize plugin.
 	 *
 	 * @access public
 	 * @action plugins_loaded
@@ -42,9 +48,9 @@ class Plugin_Dependencies_Loader {
 
 
 	/**
-	 * Add extra plugin headers
+	 * Add extra plugin headers.
 	 *
-	 * @param array $headers Plugin headers
+	 * @param array $headers Plugin headers.
 	 * @return array
 	 */
 	public static function extra_plugin_headers( $headers ) {
@@ -66,7 +72,7 @@ class Plugin_Dependencies {
 	private static $active_plugins;
 	private static $active_network_plugins;
 
-	private static $blocked_activations; // will normally only be filled on bulk activations
+	private static $blocked_activations; // Will normally only be filled on bulk activations.
 	private static $deactivate_cascade;
 	private static $deactivate_conflicting;
 	private static $deactivated_on_sites;
@@ -90,7 +96,7 @@ class Plugin_Dependencies {
 		foreach ( $all_plugins as $plugin => $plugin_data ) {
 			self::$provides[ $plugin ] = array();
 			if ( ! empty( $plugin_data['Provides'] ) ) {
-				self::$provides[ $plugin ]   = self::parse_field( $plugin_data['Provides'] ); // returns array
+				self::$provides[ $plugin ] = self::parse_field( $plugin_data['Provides'] ); // Returns array.
 			}
 			self::$provides[ $plugin ][] = $plugin;
 
@@ -115,10 +121,10 @@ class Plugin_Dependencies {
 	}
 
 	/**
-	 * Get a list of real or virtual dependencies for a plugin
+	 * Get a list of real or virtual dependencies for a plugin.
 	 *
-	 * @param string $plugin_id A plugin basename
-	 * @return array List of dependencies
+	 * @param string $plugin_id A plugin basename.
+	 * @return array List of dependencies.
 	 */
 	public static function get_dependencies( $plugin_id ) {
 		if ( ! isset( self::$dependencies ) ) {
@@ -127,16 +133,16 @@ class Plugin_Dependencies {
 
 		if ( ! isset( self::$dependencies[ $plugin_id ] ) ) {
 			return array();
-		} else {
-			return self::$dependencies[ $plugin_id ];
 		}
+
+		return self::$dependencies[ $plugin_id ];
 	}
 
 	/**
-	 * Get a list of dependencies provided by a certain plugin
+	 * Get a list of dependencies provided by a certain plugin.
 	 *
-	 * @param string $plugin_id A plugin basename
-	 * @return array List of dependencies
+	 * @param string $plugin_id A plugin basename.
+	 * @return array List of dependencies.
 	 */
 	public static function get_provided( $plugin_id ) {
 		if ( ! isset( self::$provides ) ) {
@@ -145,16 +151,16 @@ class Plugin_Dependencies {
 
 		if ( ! isset( self::$provides[ $plugin_id ] ) ) {
 			return array();
-		} else {
-			return self::$provides[ $plugin_id ];
 		}
+
+		return self::$provides[ $plugin_id ];
 	}
 
 	/**
-	 * Get a list of plugins that provide a certain dependency
+	 * Get a list of plugins that provide a certain dependency.
 	 *
-	 * @param string $dep Real or virtual dependency
-	 * @return array List of plugins
+	 * @param string $dep Real or virtual dependency.
+	 * @return array List of plugins.
 	 */
 	public static function get_providers( $dep ) {
 		if ( ! isset( self::$provides ) ) {
@@ -166,9 +172,9 @@ class Plugin_Dependencies {
 		if ( isset( self::$provides[ $dep ] ) ) {
 			$plugin_ids = array( $dep );
 		} else {
-			// virtual dependency
+			// Virtual dependency.
 			foreach ( self::$provides as $plugin => $provides ) {
-				if ( in_array( $dep, $provides ) ) {
+				if ( in_array( $dep, $provides, true ) ) {
 					$plugin_ids[] = $plugin;
 				}
 			}
@@ -179,16 +185,16 @@ class Plugin_Dependencies {
 
 
 	/**
-	 * Check if the dependencies for activating a particular plugin are met
+	 * Check if the dependencies for activating a particular plugin are met.
 	 *
-	 * @param string $plugin       Name of the plugin currently being activated
-	 * @param bool   $network_wide Whether this is a network or single site activation
+	 * @param string $plugin       Name of the plugin currently being activated.
+	 * @param bool   $network_wide Whether this is a network or single site activation.
 	 */
 	public static function check_activation( $plugin, $network_wide = false ) {
 		if ( true === $network_wide ) {
 			self::$active_plugins = array_keys( get_site_option( 'active_sitewide_plugins', array() ) );
-		}
-		else {
+
+		} else {
 			self::$active_plugins = get_option( 'active_plugins', array() );
 
 			if ( is_multisite() ) {
@@ -196,7 +202,7 @@ class Plugin_Dependencies {
 			}
 		}
 
-		// Allow for plugins which are being activated in the same bulk activation action
+		// Allow for plugins which are being activated in the same bulk activation action.
 		$bulk = array();
 		if ( ( isset( $_POST['action'] ) && 'activate-selected' === $_POST['action'] ) && ( isset( $_POST['checked'] ) && is_array( $_POST['checked'] ) ) ) {
 			$bulk = $_POST['checked'];
@@ -206,20 +212,21 @@ class Plugin_Dependencies {
 
 		$deps = self::get_dependencies( $plugin );
 		if ( count( $deps ) === count( array_intersect( self::$active_plugins, $deps ) ) ) {
-			// Ok, all dependencies have been met
+			// Ok, all dependencies have been met.
 			return;
-		}
-		else {
+
+		} else {
 			self::$blocked_activations[] = $plugin;
 			self::set_transient( 'activate', self::$blocked_activations, $network_wide );
 
-			/* Prevent other activation hooks from running as the plugin will not be activated.
-			   Unfortunately we can't easily do this for the rest of the 'activate_plugins' hook nor
-			   for the 'activated_plugin' hook as these are not plugin specific and those actions
-			   should still run for non-blocked activations in a bulk activation run.
-			   So hooking into the last one to undo any additional activation actions run by running
-			   their corresponding deactivation hooks.
-			   */
+			/*
+			 * Prevent other activation hooks from running as the plugin will not be activated.
+			 * Unfortunately we can't easily do this for the rest of the 'activate_plugins' hook nor
+			 * for the 'activated_plugin' hook as these are not plugin specific and those actions
+			 * should still run for non-blocked activations in a bulk activation run.
+			 * So hooking into the last one to undo any additional activation actions run by running
+			 * their corresponding deactivation hooks.
+			 */
 			remove_all_actions( 'activate_' . $plugin );
 			add_action( 'activated_plugin', array( __CLASS__, 'undo_activation_actions' ), 9999, 2 );
 
@@ -239,8 +246,8 @@ class Plugin_Dependencies {
 	/**
 	 * Check for conflicting provider plugins which may need to be cascade deactivated.
 	 *
-	 * @param string $plugin       Name of the plugin currently being activated
-	 * @param bool   $network_wide Whether this is a network or single site activation
+	 * @param string $plugin       Name of the plugin currently being activated.
+	 * @param bool   $network_wide Whether this is a network or single site activation.
 	 */
 	public static function check_conflicting( $plugin, $network_wide = false ) {
 		if ( ! isset( self::$blocked_activations ) || ! in_array( $plugin, self::$blocked_activations, true ) ) {
@@ -252,8 +259,8 @@ class Plugin_Dependencies {
 	/**
 	 * Check for depencing plugins which need to be cascade deactivated.
 	 *
-	 * @param string $plugin       Name of the plugin currently being deactivated
-	 * @param bool   $network_wide Whether this is a network or single site deactivation
+	 * @param string $plugin       Name of the plugin currently being deactivated.
+	 * @param bool   $network_wide Whether this is a network or single site deactivation.
 	 */
 	public static function check_cascade( $plugin, $network_wide = false ) {
 		self::execute_check( 'cascade', $plugin, $network_wide );
@@ -261,15 +268,15 @@ class Plugin_Dependencies {
 
 
 	/**
-	 * Execute a dependency check
+	 * Execute a dependency check.
 	 *
-	 * @param string $type          Either 'conflicting' or 'cascade'
-	 * @param string $plugin        Name of the plugin currently being (de-)activated
-	 * @param bool   $network_wide  Whether the current call to the method is for a network-wide (de)activation
+	 * @param string $type         Either 'conflicting' or 'cascade'.
+	 * @param string $plugin       Name of the plugin currently being (de-)activated.
+	 * @param bool   $network_wide Whether the current call to the method is for a network-wide (de)activation.
 	 */
 	protected static function execute_check( $type, $plugin, $network_wide = false ) {
 		remove_action( 'deactivate_plugin', array( 'Plugin_Dependencies', 'check_cascade' ) );
-		Plugin_Dependencies::init();
+		self::init();
 		self::$active_network_plugins = array_keys( get_site_option( 'active_sitewide_plugins', array() ) );
 		self::check_dependencies( $type, $plugin, $network_wide, $network_wide );
 		add_action( 'deactivate_plugin', array( 'Plugin_Dependencies', 'check_cascade' ), 10, 2 );
@@ -279,10 +286,12 @@ class Plugin_Dependencies {
 	/**
 	 * Execute the actual dependency checks.
 	 *
-	 * @param string $type                  Either 'conflicting' or 'cascade'
-	 * @param string $plugin                Name of the plugin currently being (de-)activated
-	 * @param bool   $network_wide          Whether the current call to the method is for a network-wide (de)activation
-	 * @param bool   $original_network_wide Whether the originating call to this method was for a network-wide (de)activation
+	 * @param string $type                  Either 'conflicting' or 'cascade'.
+	 * @param string $plugin                Name of the plugin currently being (de-)activated.
+	 * @param bool   $network_wide          Whether the current call to the method is
+	 *                                      for a network-wide (de)activation.
+	 * @param bool   $original_network_wide Whether the originating call to this method
+	 *                                      was for a network-wide (de)activation.
 	 */
 	private static function check_dependencies( $type, $plugin, $network_wide = false, $original_network_wide = false ) {
 
@@ -290,7 +299,7 @@ class Plugin_Dependencies {
 			self::$active_plugins = get_option( 'active_plugins', array() );
 
 			/* No need to execute check when a plugin is network deactivated, but still activated for
-			   the individual site */
+			   the individual site. */
 			if ( array() !== self::$active_plugins && ( false === $original_network_wide || ! in_array( $plugin, self::$active_plugins, true ) ) ) {
 
 				if ( is_multisite() ) {
@@ -298,7 +307,7 @@ class Plugin_Dependencies {
 				}
 
 				$deactivated = call_user_func( array( __CLASS__, "deactivate_$type" ), (array) $plugin, false );
-				if ( $deactivated !== array() ) {
+				if ( array() !== $deactivated ) {
 					self::set_transient( $type, $deactivated, false );
 					self::add_to_recently_deactivated( $deactivated );
 					self::$deactivated_on_sites[] = get_current_blog_id();
@@ -308,20 +317,19 @@ class Plugin_Dependencies {
 					}
 				}
 			}
-		}
-		else {
-			/* Multi-site network (de-)activation - check plugin dependencies for each blog */
+		} else {
+			/* Multi-site network (de-)activation - check plugin dependencies for each blog. */
 			self::check_dependencies_for_blogs( $type, $plugin );
 
-			/* And for the network */
+			/* And for the network. */
 			self::$active_plugins = self::$active_network_plugins;
 			$deactivated          = call_user_func( array( __CLASS__, "deactivate_$type" ), (array) $plugin, $network_wide );
-			if ( $deactivated !== array() ) {
+			if ( array() !== $deactivated ) {
 				self::set_transient( $type, $deactivated, true );
 				add_filter( 'pre_update_site_option_active_sitewide_plugins', array( __CLASS__, 'prevent_option_override_sitewide' ) );
 			}
 
-			if ( isset( self::$deactivated_on_sites ) && self::$deactivated_on_sites !== array() ) {
+			if ( isset( self::$deactivated_on_sites ) && array() !== self::$deactivated_on_sites ) {
 				self::set_transient( 'network', self::$deactivated_on_sites, true );
 			}
 		}
@@ -332,16 +340,16 @@ class Plugin_Dependencies {
 	/**
 	 * Walk through all blogs and execute the requested check for each.
 	 *
-	 * @param string $type    Either 'conflicting' or 'cascade'
-	 * @param string $plugin  Name of the plugin currently being (de-)activated
+	 * @param string $type   Either 'conflicting' or 'cascade'.
+	 * @param string $plugin Name of the plugin currently being (de-)activated.
 	 */
 	public static function check_dependencies_for_blogs( $type, $plugin ) {
 		global $wpdb;
 
-		$original_blog_id = get_current_blog_id(); // alternatively use: $wpdb->blogid
+		$original_blog_id = get_current_blog_id(); // Alternatively use: $wpdb->blogid.
 		$all_blogs        = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
 
-		if ( is_array( $all_blogs ) && $all_blogs !== array() ) {
+		if ( is_array( $all_blogs ) && array() !== $all_blogs ) {
 			foreach ( $all_blogs as $blog_id ) {
 				switch_to_blog( $blog_id );
 				self::check_dependencies( $type, $plugin, false, true );
@@ -353,11 +361,12 @@ class Plugin_Dependencies {
 
 
 	/**
-	 * Deactivate plugins that would provide the same dependencies as the ones in the list
+	 * Deactivate plugins that would provide the same dependencies as the ones in the list.
 	 *
-	 * @param array $plugin_ids A list of plugin basenames
-	 * @param  bool  $network_deactivate Whether to network or single site deactivate any plugins which need deactivating
-	 * @return array List of deactivated plugins
+	 * @param array $plugin_ids         A list of plugin basenames.
+	 * @param bool  $network_deactivate Whether to network or single site deactivate
+	 *                                  any plugins which need deactivating.
+	 * @return array List of deactivated plugins.
 	 */
 	protected static function deactivate_conflicting( $to_activate, $network_deactivate = false ) {
 		$deps = array();
@@ -367,7 +376,7 @@ class Plugin_Dependencies {
 
 		self::$deactivate_conflicting = array();
 
-		$to_check = array_diff( get_option( 'active_plugins', array() ), $to_activate );	// precaution
+		$to_check = array_diff( get_option( 'active_plugins', array() ), $to_activate ); // Precaution.
 
 		foreach ( $to_check as $active_plugin ) {
 			$common = array_intersect( $deps, self::get_provided( $active_plugin ) );
@@ -377,7 +386,7 @@ class Plugin_Dependencies {
 			}
 		}
 
-		// TODO: don't deactivate plugins that would still have all dependencies satisfied
+		// TODO: don't deactivate plugins that would still have all dependencies satisfied.
 		$deactivated = self::deactivate_cascade( self::$deactivate_conflicting, $network_deactivate );
 
 		deactivate_plugins( self::$deactivate_conflicting, false, $network_deactivate );
@@ -387,11 +396,12 @@ class Plugin_Dependencies {
 
 
 	/**
-	 * Deactivate plugins that would have unmet dependencies
+	 * Deactivate plugins that would have unmet dependencies.
 	 *
-	 * @param array $plugin_ids         A list of plugin basenames
-	 * @param  bool $network_deactivate Whether to network or single site deactivate any plugins which need deactivating
-	 * @return array List of deactivated plugins
+	 * @param array $plugin_ids         A list of plugin basenames.
+	 * @param  bool $network_deactivate Whether to network or single site deactivate
+	 *                                  any plugins which need deactivating.
+	 * @return array List of deactivated plugins.
 	 */
 	protected static function deactivate_cascade( $to_deactivate, $network_deactivate = false ) {
 		if ( empty( $to_deactivate ) ) {
@@ -400,9 +410,12 @@ class Plugin_Dependencies {
 
 		self::$deactivate_cascade = array();
 
-		self::_cascade( $to_deactivate, $network_deactivate );
+		self::cascade( $to_deactivate, $network_deactivate );
 
-		// Do not notify about plugins which are requested to be deactivated anyway within the same bulk deactivation request
+		/*
+		 * Do not notify about plugins which are requested to be deactivated anyway
+		 * within the same bulk deactivation request.
+		 */
 		$bulk = array();
 		if ( ( isset( $_POST['action2'] ) && 'deactivate-selected' === $_POST['action2'] ) && ( isset( $_POST['checked'] ) && is_array( $_POST['checked'] ) ) ) {
 			$bulk = $_POST['checked'];
@@ -412,7 +425,7 @@ class Plugin_Dependencies {
 		return self::$deactivate_cascade;
 	}
 
-	private static function _cascade( $to_deactivate, $network_deactivate = false ) {
+	private static function cascade( $to_deactivate, $network_deactivate = false ) {
 		$to_deactivate_deps = array();
 		foreach ( $to_deactivate as $plugin_id ) {
 			$to_deactivate_deps = array_merge( $to_deactivate_deps, self::get_provided( $plugin_id ) );
@@ -426,14 +439,14 @@ class Plugin_Dependencies {
 			}
 		}
 
-		$found = array_diff( $found, self::$deactivate_cascade ); // prevent endless loop
+		$found = array_diff( $found, self::$deactivate_cascade ); // Prevent endless loop.
 		if ( empty( $found ) ) {
 			return;
 		}
 
 		self::$deactivate_cascade = array_merge( self::$deactivate_cascade, $found );
 
-		self::_cascade( $found, $network_deactivate );
+		self::cascade( $found, $network_deactivate );
 
 		deactivate_plugins( $found, false, $network_deactivate );
 	}
@@ -442,9 +455,9 @@ class Plugin_Dependencies {
 	/**
 	 * Set a 'plugins deactivated' transient.
 	 *
-	 * @param string $type         Either 'conflicting' or 'cascade'
-	 * @param array  $deactivated  Deactivated plugins
-	 * @param bool   $network      Whether to set the transient for the network or for an individual site
+	 * @param string $type        Either 'conflicting' or 'cascade'.
+	 * @param array  $deactivated Deactivated plugins.
+	 * @param bool   $network     Whether to set the transient for the network or for an individual site.
 	 */
 	protected static function set_transient( $type, $deactivated, $network = false ) {
 		if ( true !== $network ) {
@@ -453,8 +466,8 @@ class Plugin_Dependencies {
 				$deactivated = array_merge( $value, $deactivated );
 			}
 			set_transient( "pd_deactivate_$type", array_unique( $deactivated ) );
-		}
-		else {
+
+		} else {
 			$value = get_site_transient( "pd_deactivate_$type" );
 			if ( is_array( $value ) ) {
 				$deactivated = array_merge( $value, $deactivated );
@@ -467,7 +480,7 @@ class Plugin_Dependencies {
 	/**
 	 * Add deactivated plugins to the 'recently active' plugins list.
 	 *
-	 * @param array $deactivated Array of deactivated plugins
+	 * @param array $deactivated Array of deactivated plugins.
 	 */
 	protected static function add_to_recently_deactivated( $deactivated ) {
 		$recent = array();
@@ -529,16 +542,18 @@ class Plugin_Dependencies {
 
 
 	/**
-	 * Undo any activation actions which may have run for blocked activation plugins
+	 * Undo any activation actions which may have run for blocked activation plugins.
 	 *
-	 * @param string $plugin        Name of the plugin which was blocked
-	 * @param bool   $network_wide  Whether the intended activation was for the network or single site
+	 * @param string $plugin       Name of the plugin which was blocked.
+	 * @param bool   $network_wide Whether the intended activation was for the network or single site.
 	 */
 	public static function undo_activation_actions( $plugin, $network_wide ) {
 		remove_action( current_filter(), array( __CLASS__, __FUNCTION__ ) );
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- using WP core hooks.
 		do_action( 'deactivate_plugin', $plugin, $network_wide );
 		do_action( 'deactivate_' . $plugin, $network_wide );
 		do_action( 'deactivated_plugin', $plugin, $network_wide );
+		// phpcs:enable
 	}
 }
 
@@ -548,7 +563,9 @@ class Plugin_Dependencies_UI {
 	private static $msg;
 
 	/**
-	 * @var array $unsatisfied  Checkbox ids for 'unsatisfied' plugins
+	 * Checkbox ids for 'unsatisfied' plugins.
+	 *
+	 * @var array $unsatisfied
 	 */
 	protected static $unsatisfied = array();
 
@@ -564,7 +581,7 @@ class Plugin_Dependencies_UI {
 
 
 	/**
-	 * Load text domain and set the message texts
+	 * Load text domain and set the message texts.
 	 */
 	public static function load_textdomain() {
 		load_plugin_textdomain( 'plugin-dependencies', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
@@ -579,7 +596,7 @@ class Plugin_Dependencies_UI {
 
 
 	/**
-	 * Show admin notices
+	 * Show admin notices.
 	 */
 	public static function admin_notices() {
 		if ( current_user_can( 'publish_posts' ) ) {
@@ -589,8 +606,7 @@ class Plugin_Dependencies_UI {
 				if ( ! is_network_admin() ) {
 					$deactivated = get_transient( "pd_deactivate_$type" );
 					delete_transient( "pd_deactivate_$type" );
-				}
-				else {
+				} else {
 					$deactivated = get_site_transient( "pd_deactivate_$type" );
 					delete_site_transient( "pd_deactivate_$type" );
 				}
@@ -600,24 +616,23 @@ class Plugin_Dependencies_UI {
 				}
 
 				if ( 'network' !== $type ) {
-					echo html(
+					echo self::html(
 						'div',
 						array( 'class' => 'updated' ),
-						html( 'p', $text, self::generate_dep_list( $deactivated, $deactivated ) )
+						self::html( 'p', $text, self::generate_dep_list( $deactivated, $deactivated ) )
 					); // xss ok
-				}
-				else {
+				} else {
 					$dep_list = '';
 					$class    = 'unsatisfied';
 					foreach ( $deactivated as $blog_id ) {
 						$details   = get_blog_details( $blog_id, false );
-						$dep_list .= html( 'li', compact( 'class' ), html( 'a', array( 'href' => get_admin_url( $blog_id, 'plugins.php?plugin_status=recently_activated' ) ), $details->blogname ) );
+						$dep_list .= self::html( 'li', compact( 'class' ), self::html( 'a', array( 'href' => get_admin_url( $blog_id, 'plugins.php?plugin_status=recently_activated' ) ), $details->blogname ) );
 					}
 
-					echo html(
+					echo self::html(
 						'div',
 						array( 'class' => 'updated' ),
-						html( 'p', $text, html( 'ul', array( 'class' => 'dep-list' ), $dep_list ) )
+						self::html( 'p', $text, self::html( 'ul', array( 'class' => 'dep-list' ), $dep_list ) )
 					); // xss ok
 				}
 			}
@@ -640,17 +655,17 @@ class Plugin_Dependencies_UI {
 	/**
 	 * Add javascript for the plugins page.
 	 *
-	 * - Turn plugin names into hash links for linking between dependent plugins/admin notice and plugins
+	 * - Turn plugin names into hash links for linking between dependent plugins/admin notice and plugins.
 	 * - Remove bulk action checkbox for unsatisfied plugins to avoid bulk activation (only on
-	 *	 single site within multisite network as otherwise update/delete actions wouldn't be
-	 *	 available anymore either)
+	 *   single site within multisite network as otherwise update/delete actions wouldn't be
+	 *   available anymore either).
 	 */
 	public static function footer_script() {
 		$all_plugins = get_plugins();
 
 		$hash = array();
 		foreach ( $all_plugins as $file => $data ) {
-			$name = isset( $data['Name'] ) ? $data['Name'] : $file;
+			$name          = isset( $data['Name'] ) ? $data['Name'] : $file;
 			$hash[ $name ] = sanitize_title( $name );
 		}
 
@@ -685,11 +700,12 @@ class Plugin_Dependencies_UI {
 			return $actions;
 		}
 
-		$active_plugins = (array) get_option( 'active_plugins', array() );
+		$active_plugins         = (array) get_option( 'active_plugins', array() );
 		$network_active_plugins = array_keys( get_site_option( 'active_sitewide_plugins', array() ) );
-		$mu_plugins = array_keys( (array) get_mu_plugins() );
+		$mu_plugins             = array_keys( (array) get_mu_plugins() );
 
-		$unsatisfied = $unsatisfied_network = array();
+		$unsatisfied         = array();
+		$unsatisfied_network = array();
 		foreach ( $deps as $dep ) {
 			$plugin_ids = Plugin_Dependencies::get_providers( $dep );
 
@@ -713,17 +729,16 @@ class Plugin_Dependencies_UI {
 		}
 
 		if ( ! empty( $unsatisfied_network ) ) {
-			// Array key was changed in WP 3.4
+			// Array key was changed in WP 3.4.
 			if ( isset( $actions['network_activate'] ) ) {
 				unset( $actions['network_activate'] );
-			}
-			else {
+			} else {
 				unset( $actions['activate'] );
 			}
 			self::$unsatisfied[] = 'checkbox_' . md5( $plugin_data['Name'] );
 		}
 
-		$dep_list        = html( 'span', array( 'class' => 'dep-action' ), __( 'Required plugins:', 'plugin-dependencies' ) );
+		$dep_list        = self::html( 'span', array( 'class' => 'dep-action' ), __( 'Required plugins:', 'plugin-dependencies' ) );
 		$dep_list       .= '<br>' . self::generate_dep_list( $deps, $unsatisfied, $unsatisfied_network );
 		$actions['deps'] = $dep_list;
 
@@ -738,21 +753,19 @@ class Plugin_Dependencies_UI {
 		$dep_list = '';
 		foreach ( $deps as $dep ) {
 			$plugin_ids = Plugin_Dependencies::get_providers( $dep );
-			if ( in_array( $dep, $unsatisfied ) ) {
+			if ( in_array( $dep, $unsatisfied, true ) ) {
 				$class = 'unsatisfied';
 				$title = __( 'Dependency: Unsatisfied', 'plugin-dependencies' );
-			}
-			elseif ( in_array( $dep, $unsatisfied_network ) ) {
+			} elseif ( in_array( $dep, $unsatisfied_network, true ) ) {
 				$class = 'unsatisfied_network';
 				$title = __( 'Dependency: Network unsatisfied', 'plugin-dependencies' );
-			}
-			else {
+			} else {
 				$class = 'satisfied';
 				$title = __( 'Dependency: Satisfied', 'plugin-dependencies' );
 			}
 
 			if ( empty( $plugin_ids ) ) {
-				$name = html( 'span', esc_html( $dep ) );
+				$name = self::html( 'span', esc_html( $dep ) );
 			} else {
 				$list = array();
 				foreach ( $plugin_ids as $plugin_id ) {
@@ -760,52 +773,63 @@ class Plugin_Dependencies_UI {
 						if ( is_network_admin() || ! is_plugin_active_for_network( $plugin_id ) ) {
 							$name = $all_plugins[ $plugin_id ]['Name'];
 							$url  = self_admin_url( 'plugins.php' ) . '#' . sanitize_title( $name );
-						}
-						else {
+
+						} else {
 							$name = sprintf(
-								__( '%s (%s)', 'plugin-dependencies' ),
+								/* translators: 1: Plugin name; 2: Plugin installation type (network/must-use). */
+								__( '%1$s (%2$s)', 'plugin-dependencies' ),
 								$all_plugins[ $plugin_id ]['Name'],
 								__( 'network', 'plugin-dependencies' )
 							);
+
+							$url = false;
 							if ( current_user_can( 'manage_network_plugins' ) ) {
-								$url  = network_admin_url( 'plugins.php' ) . '#' . sanitize_title( $all_plugins[ $plugin_id ]['Name'] );
-							}
-							else {
-								$url = false;
+								$url = network_admin_url( 'plugins.php' ) . '#' . sanitize_title( $all_plugins[ $plugin_id ]['Name'] );
 							}
 						}
 					} elseif ( isset( $mu_plugins[ $plugin_id ]['Name'] ) ) {
 						$name = sprintf(
-							__( '%s (%s)', 'plugin-dependencies' ),
+							/* translators: 1: Plugin name; 2: Plugin installation type (network/must-use). */
+							__( '%1$s (%2$s)', 'plugin-dependencies' ),
 							$mu_plugins[ $plugin_id ]['Name'],
 							__( 'must-use', 'plugin-dependencies' )
 						);
-						$url  = add_query_arg( 'plugin_status', 'mustuse' ) . '#' . sanitize_title( $mu_plugins[ $plugin_id ]['Name'] );
+						$url = add_query_arg( 'plugin_status', 'mustuse' ) . '#' . sanitize_title( $mu_plugins[ $plugin_id ]['Name'] );
+
 					} else {
 						$name = $plugin_id;
 						$url  = '#' . sanitize_title( $name );
 					}
 
 					if ( false !== $url ) {
-						$list[] = html( 'a', array( 'href' => $url, 'title' => $title ), $name );
-					}
-					else {
-						$list[] = html( 'span', array( 'title' => $title ), $name );
+						$list[] = self::html(
+							'a',
+							array(
+								'href'  => $url,
+								'title' => $title,
+							),
+							$name
+						);
+					} else {
+						$list[] = self::html(
+							'span',
+							array(
+								'title' => $title,
+							),
+							$name
+						);
 					}
 				}
 				$name = implode( ' or ', $list );
 			}
 
-			$dep_list .= html( 'li', compact( 'class' ), $name );
+			$dep_list .= self::html( 'li', compact( 'class' ), $name );
 		}
 
-		return html( 'ul', array( 'class' => 'dep-list' ), $dep_list );
+		return self::html( 'ul', array( 'class' => 'dep-list' ), $dep_list );
 	}
-}
 
-
-if ( ! function_exists( 'html' ) ) :
-	function html( $tag ) {
+	public static function html( $tag ) {
 		$args = func_get_args();
 
 		$tag = array_shift( $args );
@@ -828,7 +852,7 @@ if ( ! function_exists( 'html' ) ) :
 			list( $closing ) = explode( ' ', $tag, 2 );
 		}
 
-		if ( in_array( $closing, array( 'area', 'base', 'basefont', 'br', 'hr', 'input', 'img', 'link', 'meta' ) ) ) {
+		if ( in_array( $closing, array( 'area', 'base', 'basefont', 'br', 'hr', 'input', 'img', 'link', 'meta' ), true ) ) {
 			return "<{$tag} />";
 		}
 
@@ -836,4 +860,5 @@ if ( ! function_exists( 'html' ) ) :
 
 		return "<{$tag}>{$content}</{$closing}>";
 	}
-endif;
+
+}
